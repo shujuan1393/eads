@@ -1,3 +1,8 @@
+
+import static connect.Bootstrap.*;
+import static connect.db.*;
+import java.sql.Connection;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -8,6 +13,11 @@
  *
  * @author smu
  */
+
+
 public class main {
-    
+    public static void main(String[] args) {
+        Connection conn = connect();
+        boolean success = bootstrap(conn);
+    }
 }
