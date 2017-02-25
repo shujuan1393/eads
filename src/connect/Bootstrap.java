@@ -1,8 +1,10 @@
 package connect;
 
 import entity.Data;
+import com.monitorjbl.xlsx.StreamingReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,11 +12,10 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Iterator;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -31,42 +32,44 @@ public class Bootstrap {
 
         try {
             //File myFile = new File("C://Users//User 2//Documents//SMUX - Outlet Data V1.xlsx");
-//            File myFile = new File("/Users/smu/SMUX - Outlet Data V1.xlsx");
-            File myFile = new File("/Users/smu/Documents/Y4/S2/Enterprise Analytics/Project/SMUX - Outlet Data V1.xlsx");
+            //File myFile = new File("C://Users//User 2//Documents//SMUX - Outlet Data V1.xlsx");
 
-            FileInputStream fis = new FileInputStream(myFile);
-
+            //FileInputStream fis = new FileInputStream(myFile);
             // Finds the workbook instance for XLSX file
-            XSSFWorkbook myWorkBook = new XSSFWorkbook(fis);
-
+            //XSSFWorkbook myWorkBook = new XSSFWorkbook(fis);
             // Return first sheet from the XLSX workbook
-            XSSFSheet mySheet = myWorkBook.getSheetAt(0);
-
+            //XSSFSheet mySheet = myWorkBook.getSheetAt(0);
             // Get iterator to all the rows in current sheet
-            Iterator<Row> rowIterator = mySheet.iterator();
-
+            //Iterator<Row> rowIterator = mySheet.iterator();
             int noOfLines = 0;
 
-            DateFormat df = new SimpleDateFormat("dd-MM-yyyy"); //for transact date
-            DateFormat df2 = new SimpleDateFormat("hh:mm a"); //for transact time
-
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd"); //for transact date
+            DateFormat df2 = new SimpleDateFormat("h:mm:ss a"); //for transact time
+            Calendar time = Calendar.getInstance();
             ArrayList<Data> list = new ArrayList<Data>();
-            // Traversing over each row of XLSX file
-            
-            while (rowIterator.hasNext()) {
-                Row row = rowIterator.next();
+            InputStream is = new FileInputStream(new File("/Users/smu/Documents/Y4/S2/Enterprise Analytics/Project/SMUX - Outlet Data V1.xlsx"));
+
+//            InputStream is = new FileInputStream(new File("C://Users//User 2//Documents//SMUX - Outlet Data V1.xlsx"));
+            StreamingReader reader = StreamingReader.builder()
+                    .rowCacheSize(100) // number of rows to keep in memory (defaults to 10)
+                    .bufferSize(4096) // buffer size to use when reading InputStream to file (defaults to 1024)
+                    .sheetIndex(0) // index of sheet to use (defaults to 0)
+                    .read(is);            // InputStream or File for XLSX file (required)
+            int counter = 0;
+            for (Row r : reader) {
+                counter++;
 
                 //initialize a data object
                 Data data = new Data(0, 0, "NULL", 0, "NULL", "", "Outlet", 0, 0, "", "", 0, 0, 0);
-
                 if (noOfLines > 0) {
+
                     // For each row, iterate through each columns
-                    Iterator<Cell> cellIterator = row.cellIterator();
+                    Iterator<Cell> cellIterator = r.cellIterator();
                     while (cellIterator.hasNext()) {
                         Cell cell = cellIterator.next();
                         int cellIndex = cell.getColumnIndex();
-//                        System.out.println("2");
-//                        System.out.println("cellIndex = " + cellIndex);
+                        //System.out.println("2");
+                        //System.out.println("cellIndex = " + cellIndex);
                         switch (cellIndex) {
                             case 0: //customer id
 
@@ -95,8 +98,12 @@ public class Bootstrap {
                                 //System.out.println("case 4");
                                 break;
                             case 5: //transact time
-                                data.setTransactTime(df2.format(cell.getNumericCellValue()));
-                                //System.out.println("case 5 " + cell.getNumericCellValue() );
+                                time.setTime(cell.getDateCellValue());
+                               //System.out.println("case 5 " + df2.format(time.getTime()) );
+                                data.setTransactTime(df2.format(time.getTime()));
+                                //data.setTransactTime(df2.format(cell.getNumericCellValue()));
+                                //System.out.println("case 5 " + cell.getNumericCellValue());
+                                //System.out.println("case 5 " + df2.format(cell.getNumericCellValue()));
                                 break;
                             case 6: //outlet
                                 data.setOutlet(cell.getStringCellValue());
@@ -111,11 +118,11 @@ public class Bootstrap {
                                 //System.out.println("case 8");
                                 break;
                             case 9: //item
-                                try {
-                                    data.setItem(cell.getRichStringCellValue().getString());
-                                } catch (Exception e) {
-                                    data.setItem(String.valueOf(cell.getNumericCellValue()));
-                                }
+                                //try {
+                                data.setItem(cell.getStringCellValue());
+                                //} catch (Exception e) {
+                                //  data.setItem(String.valueOf((int) cell.getNumericCellValue()));
+                                //}
                                 //System.out.println("case 9");
                                 break;
                             case 10: //item description
@@ -137,76 +144,95 @@ public class Bootstrap {
                             default:
 
                         }
-                        
                     }
                     list.add(data);
 
-                    System.out.println("");
-//                    break;
+                    //System.out.println("");
                 }
                 noOfLines++;
-            }
-            
-            //establish connection, sql, execute sql
-            try {
-                String sql = "Insert into data VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-                PreparedStatement pstmt = null;
-                ResultSet rs = null;
-                //upload by batches
-                conn.setAutoCommit(false);
-                final int batchSize = 500;
-//                final int totalRows = 400000;
-                int count = 0;
-                pstmt = conn.prepareStatement(sql);
-                //loop through user list
-                for (Data d : list) {
-                    pstmt.setInt(1, (int) d.getCustomerId());
-                    pstmt.setInt(2, (int) d.getAge());
-                    pstmt.setString(3, d.getGender());
-                    pstmt.setInt(4, (int) d.getTransactId());
-                    pstmt.setString(5, d.getTransactDate());
-                    pstmt.setString(6, d.getTransactTime());
-                    pstmt.setString(7, d.getOutlet());
-                    pstmt.setInt(8, (int) d.getOutletDistrict());
-                    pstmt.setInt(9, (int) d.getTransactDetailsId());
-                    pstmt.setString(10, d.getItem());
-                    pstmt.setString(11, d.getItemDesc());
-                    pstmt.setInt(12, (int) d.getQuantity());
-                    pstmt.setDouble(13, d.getPrice());
-                    pstmt.setDouble(14, d.getSpending());
-                    pstmt.addBatch();
-                    count++;
+                if (noOfLines == 32740 ) {
                     
-//                    if (count % batchSize == 0) {
-//                        System.out.println(count + " " + batchSize);
-//                        pstmt.executeBatch();
-//                        pstmt = conn.prepareStatement(sql);
-//                    }
-////                    
-//                    if (count == totalRows) {
-//                        System.out.println(count + " " + totalRows);
-//                        break;
-//                    }
-                    if (count % batchSize == 0) {
-                        System.out.println(pstmt);
-                        pstmt.executeBatch();
+                    //establish connection, sql, execute sql
+                    try {
+                        String sql = "Insert into data VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                        PreparedStatement pstmt = null;
+                        ResultSet rs = null;
+                        //upload by batches
+                        conn.setAutoCommit(false);
+                        //total 556581
+                        
                         pstmt = conn.prepareStatement(sql);
-//                        pstmt.executeQuery();
-    
+                        //loop through user list
+                        for (Data d : list) {
+                            pstmt.setInt(1, d.getCustomerId());
+                            pstmt.setInt(2, d.getAge());
+                            pstmt.setString(3, d.getGender());
+                            pstmt.setInt(4, d.getTransactId());
+                            pstmt.setString(5, d.getTransactDate());
+                            pstmt.setString(6, d.getTransactTime());
+                            pstmt.setString(7, d.getOutlet());
+                            pstmt.setInt(8, d.getOutletDistrict());
+                            pstmt.setInt(9, d.getTransactDetailsId());
+                            pstmt.setString(10, d.getItem());
+                            pstmt.setString(11, d.getItemDesc());
+                            pstmt.setInt(12, d.getQuantity());
+                            pstmt.setDouble(13, d.getPrice());
+                            pstmt.setDouble(14, d.getSpending());
+                            pstmt.addBatch();
+                        }
+                        //System.out.println(pstmt);
+                        pstmt.executeBatch();
+                        conn.commit();
+                        System.out.println("current counter = " + counter);
+                    } catch (SQLException k) {
+                        k.printStackTrace();
+                    }
+                    noOfLines = 1;
+                    list.clear();
+                    //System.out.println("batch submitted");
+                } else if (counter > 556560 && counter <= 556580){
+                    try {
+                        String sql = "Insert into data VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                        PreparedStatement pstmt = null;
+                        ResultSet rs = null;
+                        //upload by batches
+                        //conn.setAutoCommit(false);
+                        //total 556581
+                        
+                        pstmt = conn.prepareStatement(sql);
+                        //loop through user list
+                        for (Data d : list) {
+                            pstmt.setInt(1, d.getCustomerId());
+                            pstmt.setInt(2, d.getAge());
+                            pstmt.setString(3, d.getGender());
+                            pstmt.setInt(4, d.getTransactId());
+                            pstmt.setString(5, d.getTransactDate());
+                            pstmt.setString(6, d.getTransactTime());
+                            pstmt.setString(7, d.getOutlet());
+                            pstmt.setInt(8, d.getOutletDistrict());
+                            pstmt.setInt(9, d.getTransactDetailsId());
+                            pstmt.setString(10, d.getItem());
+                            pstmt.setString(11, d.getItemDesc());
+                            pstmt.setInt(12, d.getQuantity());
+                            pstmt.setDouble(13, d.getPrice());
+                            pstmt.setDouble(14, d.getSpending());
+                            //pstmt.addBatch();
+                        }
+                        //System.out.println(pstmt);
+                        pstmt.executeUpdate();
+                        //conn.commit();
+                        System.out.println("current counter = " + counter);
+                    } catch (SQLException k) {
+                        k.printStackTrace();
                     }
                 }
-//                pstmt.executeUpdate();
-//                pstmt.executeBatch();
-                conn.commit();
-                //close connection
-                conn.close();
-            } catch (SQLException k) {
-                k.printStackTrace();
             }
-
+            //close connection
+            conn.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return true;
     }
 }
