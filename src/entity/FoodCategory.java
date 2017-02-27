@@ -10,119 +10,32 @@ package entity;
  *
  * @author User 2
  */
-public class Data {
-    private int customerId;
-    private int age;
-    private String gender;
-    private int transactId;
-    private String transactDate;
-    private String transactTime;
-    private String outlet;
-    private int outletDistrict;
-    private int transactDetailsId;
-    private String item;
+public class FoodCategory {
+    private String item_id;
     private String itemDesc;
-    private int quantity;
-    private double price;
-    private double spending;
+    private String course;
+    private String origin;
+    private String tags;
+    private String hotcold;
 
-    public Data(int customerId, int age, String gender, int transactId, String transactDate, String transactTime, String outlet, int outletDistrict, int transactDetailsId, String item, String itemDesc, int quantity, double price, double spending) {
-        this.customerId = customerId;
-        this.age = age;
-        this.gender = gender;
-        this.transactId = transactId;
-        this.transactDate = transactDate;
-        this.transactTime = transactTime;
-        this.outlet = outlet;
-        this.outletDistrict = outletDistrict;
-        this.transactDetailsId = transactDetailsId;
-        this.item = item;
+    public FoodCategory(String item_id, String itemDesc, String course, String origin, String tags, String hotcold) {
+        this.item_id = item_id;
         this.itemDesc = itemDesc;
-        this.quantity = quantity;
-        this.price = price;
-        this.spending = spending;
-    }
-            
-    public int getCustomerId() {
-        return customerId;
+        this.course = course;
+        this.origin = origin;
+        this.tags = tags;
+        this.hotcold = hotcold;
     }
 
-    public void setCustomerId(int customerId) {
-        this.customerId = customerId;
+    public String getItem_id() {
+        return item_id;
     }
 
-    public int getAge() {
-        return age;
+    public void setItem_id(String item_id) {
+        this.item_id = item_id;
     }
 
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    public String getGender() {
-        return gender;
-    }
-
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
-
-    public int getTransactId() {
-        return transactId;
-    }
-
-    public void setTransactId(int transactId) {
-        this.transactId = transactId;
-    }
-
-    public String getTransactDate() {
-        return transactDate;
-    }
-
-    public void setTransactDate(String transactDate) {
-        this.transactDate = transactDate;
-    }
-
-    public String getTransactTime() {
-        return transactTime;
-    }
-
-    public void setTransactTime(String transactTime) {
-        this.transactTime = transactTime;
-    }
-
-    public String getOutlet() {
-        return outlet;
-    }
-
-    public void setOutlet(String outlet) {
-        this.outlet = outlet;
-    }
-
-    public int getOutletDistrict() {
-        return outletDistrict;
-    }
-
-    public void setOutletDistrict(int outletDistrict) {
-        this.outletDistrict = outletDistrict;
-    }
-
-    public int getTransactDetailsId() {
-        return transactDetailsId;
-    }
-
-    public void setTransactDetailsId(int transactDetailsId) {
-        this.transactDetailsId = transactDetailsId;
-    }
-
-    public String getItem() {
-        return item;
-    }
-
-    public void setItem(String item) {
-        this.item = item;
-    }
-
+    
     public String getItemDesc() {
         return itemDesc;
     }
@@ -131,31 +44,39 @@ public class Data {
         this.itemDesc = itemDesc;
     }
 
-    public int getQuantity() {
-        return quantity;
+    public String getCourse() {
+        return course;
     }
 
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
+    public void setCourse(String course) {
+        this.course = course;
     }
 
-    public double getPrice() {
-        return price;
+    public String getOrigin() {
+        return origin;
     }
 
-    public void setPrice(double price) {
-        this.price = price;
+    public void setOrigin(String origin) {
+        this.origin = origin;
     }
 
-    public double getSpending() {
-        return spending;
+    public String getTags() {
+        return tags;
     }
 
-    public void setSpending(double spending) {
-        this.spending = spending;
+    public void setTags(String tags) {
+        this.tags = tags;
     }
+
+    public String getHotcold() {
+        return hotcold;
+    }
+
+    public void setHotcold(String hotcold) {
+        this.hotcold = hotcold;
+    }
+          
     
-           
     
       
 }
