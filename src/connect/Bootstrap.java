@@ -47,7 +47,7 @@ public class Bootstrap {
             DateFormat df2 = new SimpleDateFormat("h:mm:ss a"); //for transact time
             Calendar time = Calendar.getInstance();
             ArrayList<Data> list = new ArrayList<Data>();
-            InputStream is = new FileInputStream(new File("/Users/smu/Documents/Y4/S2/Enterprise Analytics/Project/SMUX - Outlet Data V1.xlsx"));
+            InputStream is = new FileInputStream(new File("/Users/langxin/Desktop/Enterprise Analytics/Project/SMUX - Outlet Data V1.xlsx"));
 
 //            InputStream is = new FileInputStream(new File("C://Users//User 2//Documents//SMUX - Outlet Data V1.xlsx"));
             StreamingReader reader = StreamingReader.builder()

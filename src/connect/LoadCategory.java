@@ -50,7 +50,7 @@ public class LoadCategory {
             ResultSet rs = null;
             
             ArrayList<FoodCategory> list = new ArrayList<>();
-            InputStream is = new FileInputStream(new File("C:/Users/User/Dropbox/Y4S2/EADS/Project/category.xlsx"));
+            InputStream is = new FileInputStream(new File("/Users/langxin/Desktop/Enterprise Analytics/Project/category.xlsx"));
 
             StreamingReader reader = StreamingReader.builder()
                     .rowCacheSize(100) // number of rows to keep in memory (defaults to 10)
