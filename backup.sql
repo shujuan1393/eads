@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `data` (
   `customerid` int(11) NOT NULL,
   `age` int(11) NOT NULL,
   `gender` varchar(200) NOT NULL,
-  `transacid` int(11) NOT NULL,
+  `transactid` int(11) NOT NULL,
   `transactdate` varchar(200) NOT NULL,
   `transacttime` varchar(200) NOT NULL,
   `outlet` varchar(200) NOT NULL,
@@ -40,20 +40,22 @@ CREATE TABLE IF NOT EXISTS `data` (
   `itemdesc` varchar(200) NOT NULL,
   `quantity` int(11) NOT NULL,
   `price` double NOT NULL,
-  `spending` double NOT NULL
+  `spending` double NOT NULL,
+  PRIMARY KEY(`customerid`, `transactid`, `transactdetailsid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Table structure for table `category`
 --
 
-CREATE TABLE `category` (
+CREATE TABLE IF NOT EXISTS `category` (
   `item_id` varchar(200) NOT NULL,
   `item_desc` varchar(300) NOT NULL,
   `course` varchar(10) NOT NULL,
   `origin` varchar(50) NOT NULL,
   `tags` varchar(255) NOT NULL,
-  `hot_cold` varchar(10) NOT NULL
+  `hot_cold` varchar(10) NOT NULL,
+  PRIMARY KEY(`item_id`, `item_desc`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 --

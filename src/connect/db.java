@@ -17,8 +17,10 @@ public class db {
    static final String USER = "eads";
    static final String PASS = "";
    
+   static Connection conn;
+   
    public static Connection connect() {
-        Connection conn = null;
+        conn = null;
         Statement stmt = null;
         
         try{
@@ -35,17 +37,17 @@ public class db {
            stmt = conn.createStatement();
            
            String sql = "CREATE TABLE IF NOT EXISTS `data` (\n" +
-                "  `customerID` int(11) NOT NULL,\n" +
+                "  `customerid` int(11) NOT NULL,\n" +
                 "  `age` int(11) NOT NULL,\n" +
                 "  `gender` varchar(20) NOT NULL,\n" +
-                "  `transactID` varchar(100) NOT NULL,\n" +
-                "  `transactDate` varchar(200) NOT NULL,\n" +
-                "  `transactTime` varchar(200) NOT NULL,\n" +
+                "  `transactid` varchar(100) NOT NULL,\n" +
+                "  `transactdate` varchar(200) NOT NULL,\n" +
+                "  `transacttime` varchar(200) NOT NULL,\n" +
                 "  `outlet` varchar(100) NOT NULL,\n" +
-                "  `outletDistrict` int(11) NOT NULL,\n" +
-                "  `transactDetailsID` int(11) NOT NULL,\n" +
+                "  `outletdistrict` int(11) NOT NULL,\n" +
+                "  `transactdetailsid` int(11) NOT NULL,\n" +
                 "  `item` varchar(200) NOT NULL,\n" +
-                "  `itemDesc` varchar(300) NOT NULL,\n" +
+                "  `itemdesc` varchar(300) NOT NULL,\n" +
                 "  `quantity` int(11) NOT NULL,\n" +
                 "  `price` double NOT NULL,\n" +
                 "  `spending` double NOT NULL\n" +
@@ -74,4 +76,13 @@ public class db {
         System.out.println("Goodbye!");
         return conn;
     }//end 
+   
+   public static void closeConnection() {
+        try{
+            if(conn!=null)
+               conn.close();
+        } catch (SQLException se){
+            se.printStackTrace();
+        }//end finally try
+   }
 }//end JDBCExample

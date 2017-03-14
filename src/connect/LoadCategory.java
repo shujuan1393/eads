@@ -40,11 +40,10 @@ public class LoadCategory {
 
     private static final String SQLINSERT = "Insert into category VALUES(?,?,?,?,?,?)";
     
-    public static boolean loadCategory() {
+    public static boolean loadCategory(Connection conn) {
         
         try {
             int noOfLines = 0;
-            Connection conn = null;
             PreparedStatement pstmt = null;
             PreparedStatement pstmt2 = null;
             ResultSet rs = null;
@@ -106,7 +105,7 @@ public class LoadCategory {
             }
                 //establish connection, sql, execute sql
             try {
-                conn = esas.utility.DatabaseConnectionManager.getConnection();
+//                conn = connect.DatabaseConnectionManager.getConnection();
                 pstmt = conn.prepareStatement(SQLCREATE);
                 pstmt.executeUpdate();
               
@@ -131,12 +130,12 @@ public class LoadCategory {
             } catch (SQLException k) {
                 k.printStackTrace();
             }  finally {
-            if (conn != null) {
-                esas.utility.DatabaseConnectionManager.closeConnection(conn);
-            }
-            if (pstmt2 != null) {
-                pstmt2.close();
-            }
+//            if (conn != null) {
+//                connect.DatabaseConnectionManager.closeConnection(conn);
+//            }
+//            if (pstmt2 != null) {
+//                pstmt2.close();
+//            }
         }
             list.clear();
            

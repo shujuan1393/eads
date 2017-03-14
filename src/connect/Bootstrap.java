@@ -2,6 +2,7 @@ package connect;
 
 import entity.Data;
 import com.monitorjbl.xlsx.StreamingReader;
+import entity.Customer;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -27,9 +28,16 @@ import org.apache.poi.ss.usermodel.Row;
  * @author User 2
  */
 public class Bootstrap {
-
+    private static final String SQLCREATE = "CREATE TABLE IF NOT EXISTS `users` (\n" +
+         "  `customerid` varchar(10) NOT NULL,\n" +
+         "  `age` varchar(10) NOT NULL,\n" +
+         "  `gender` varchar(50) NOT NULL,\n" +
+         "  `spending` double NOT NULL,\n" +
+                "   PRIMARY KEY(`customerid`))";
+    
     public static boolean bootstrap(Connection conn) {
-
+        PreparedStatement userpmt = null;
+        PreparedStatement insertUser = null;
         try {
             //File myFile = new File("C://Users//User 2//Documents//SMUX - Outlet Data V1.xlsx");
             //File myFile = new File("C://Users//User 2//Documents//SMUX - Outlet Data V1.xlsx");
@@ -41,12 +49,16 @@ public class Bootstrap {
             //XSSFSheet mySheet = myWorkBook.getSheetAt(0);
             // Get iterator to all the rows in current sheet
             //Iterator<Row> rowIterator = mySheet.iterator();
+            userpmt = conn.prepareStatement(SQLCREATE);
+            userpmt.executeUpdate();
             int noOfLines = 0;
 
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd"); //for transact date
             DateFormat df2 = new SimpleDateFormat("h:mm:ss a"); //for transact time
             Calendar time = Calendar.getInstance();
             ArrayList<Data> list = new ArrayList<Data>();
+            ArrayList<Customer> clist = new ArrayList<Customer>();
+            
             InputStream is = new FileInputStream(new File("/Users/smu/Documents/Y4/S2/Enterprise Analytics/Project/SMUX - Outlet Data V1.xlsx"));
 
 //            InputStream is = new FileInputStream(new File("C://Users//User 2//Documents//SMUX - Outlet Data V1.xlsx"));
@@ -61,6 +73,8 @@ public class Bootstrap {
 
                 //initialize a data object
                 Data data = new Data(0, 0, "NULL", 0, "NULL", "", "Outlet", 0, 0, "", "", 0, 0, 0);
+                Customer cust = new Customer(0, 0, "", 0);
+                
                 if (noOfLines > 0) {
 
                     // For each row, iterate through each columns
@@ -72,20 +86,25 @@ public class Bootstrap {
                         //System.out.println("cellIndex = " + cellIndex);
                         switch (cellIndex) {
                             case 0: //customer id
-
-                                data.setCustomerId((int) cell.getNumericCellValue());
+                                int custid = (int) cell.getNumericCellValue();
+                                data.setCustomerId(custid);
+                                cust.setCustomerId(custid);
                                 //System.out.println("case 0");
                                 break;
                             case 1: //age
                                 try {
-                                    data.setAge((int) cell.getNumericCellValue());
+                                    int age = (int) cell.getNumericCellValue();
+                                    data.setAge(age);
+                                    cust.setAge(age);
                                 } catch (Exception e) {
                                     //leave it as 0
                                 }
 
                                 break;
                             case 2: //gender
-                                data.setGender(cell.getStringCellValue());
+                                String gender = cell.getStringCellValue(); 
+                                data.setGender(gender);
+                                cust.setGender(gender);
                                 //System.out.println("case 2");
                                 break;
                             case 3: //transact id
@@ -138,7 +157,9 @@ public class Bootstrap {
                                 //System.out.println("case 12");
                                 break;
                             case 13: //spending
-                                data.setSpending(cell.getNumericCellValue());
+                                double spending = cell.getNumericCellValue();
+                                data.setSpending(spending);
+                                cust.setSpending(spending);
                                 //System.out.println("case 13");
                                 break;
                             default:
@@ -146,15 +167,37 @@ public class Bootstrap {
                         }
                     }
                     list.add(data);
-
                     //System.out.println("");
                 }
+                
+                if(clist.isEmpty()) {
+                    clist.add(cust);
+                } else {
+                    boolean isCreated = false;
+                    
+                    for (Customer c : clist) {
+                        int stored = c.getCustomerId();
+                        int cur = cust.getCustomerId();
+                        
+                        if (stored == cur) {
+                            isCreated = true;
+                            break;
+                        } else {
+                            isCreated = false;
+                        }
+                    }
+                    if (isCreated == false) {
+                        clist.add(cust);         
+                    }
+                }
+                
                 noOfLines++;
                 if (noOfLines == 32740 ) {
                     
                     //establish connection, sql, execute sql
                     try {
                         String sql = "Insert into data VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                        String users = "Insert into users VALUES(?,?,?,?)";
                         PreparedStatement pstmt = null;
                         ResultSet rs = null;
                         //upload by batches
@@ -162,6 +205,8 @@ public class Bootstrap {
                         //total 556581
                         
                         pstmt = conn.prepareStatement(sql);
+                        insertUser = conn.prepareStatement(users);
+                        
                         //loop through user list
                         for (Data d : list) {
                             pstmt.setInt(1, d.getCustomerId());
@@ -180,6 +225,17 @@ public class Bootstrap {
                             pstmt.setDouble(14, d.getSpending());
                             pstmt.addBatch();
                         }
+                        
+                        for (Customer d : clist) {
+                            insertUser.setInt(1, d.getCustomerId());
+                            insertUser.setInt(2, d.getAge());
+                            insertUser.setString(3, d.getGender());
+                            insertUser.setDouble(4, d.getSpending());
+                            insertUser.addBatch();
+                        }
+                        //System.out.println(pstmt);
+                        insertUser.executeBatch();
+                        
                         //System.out.println(pstmt);
                         pstmt.executeBatch();
                         conn.commit();
@@ -187,8 +243,10 @@ public class Bootstrap {
                     } catch (SQLException k) {
                         k.printStackTrace();
                     }
+                    
                     noOfLines = 1;
                     list.clear();
+                    clist.clear();
                     //System.out.println("batch submitted");
                 } else if (counter > 556560 && counter <= 556580){
                     try {
@@ -227,8 +285,9 @@ public class Bootstrap {
                     }
                 }
             }
+            
             //close connection
-            conn.close();
+//            conn.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
