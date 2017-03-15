@@ -42,14 +42,10 @@ public class LoadSatisfactionValues {
     
     public boolean loadSatisfactionValues(Connection conn) throws SQLException {
         ArrayList<Data> dataList = null;
+        ArrayList<ArrayList<String>> outer = new ArrayList<>();
+        ArrayList<String> inner = new ArrayList<>();
                 
         try {
-//             // create our mysql database connection
-//            String myDriver = "org.gjt.mm.mysql.Driver";
-//            String myUrl = "jdbc:mysql://localhost:8889/eads";
-//            Class.forName(myDriver);
-//            Connection conn = DriverManager.getConnection(myUrl, "root", "");
-
             // our SQL SELECT query. 
             // if you only need a few columns, specify them by name instead of using "*"
             String query = "SELECT * FROM data";
@@ -60,10 +56,13 @@ public class LoadSatisfactionValues {
             // execute the query, and get a java resultset
             ResultSet rs = st.executeQuery(query);
             
-            Data d = null;
-            dataList = new ArrayList<Data>();
-      
+            Data d = new Data(0, 0, "NULL", 0, "NULL", "", "Outlet", 0, 0, "", "", 0, 0, 0);
+            dataList = new ArrayList<>();
+            
             while (rs.next()) {
+                String custId = ""+rs.getInt("customerid");
+                String itemId = rs.getString("item");
+                
                 d.setCustomerId(rs.getInt("customerid"));
                 d.setAge(rs.getInt("age"));
                 d.setGender(rs.getString("gender"));
@@ -78,43 +77,53 @@ public class LoadSatisfactionValues {
                 d.setQuantity(rs.getInt("quantity"));
                 d.setPrice(rs.getDouble("price"));
                 d.setSpending(rs.getDouble("spending"));
-                System.out.println(d.toString());
                 dataList.add(d);
+                
+    //            String custId = Integer.toString(d.getCustomerId());
+    //            String itemId = d.getItem();
+    //            String qty = Integer.toString(d.getQuantity());
+
+                //Check if custId and itemId already exists
+
+                if (outer.isEmpty()) {
+                    inner.add(custId);
+                    inner.add(itemId);
+                    inner.add("1");
+                    outer.add(inner);
+                    inner = new ArrayList<> ();
+                } else {
+                    boolean isCreated = false;
+                    for (ArrayList<String> in : outer) {
+                        String cust = in.get(0);
+                        String item = in.get(1);
+
+                        if (cust.equals(custId) && item.equals(itemId)) {
+                            int newqty = Integer.parseInt(in.get(2))+1;
+                            in.add(2, ""+newqty);
+//                            System.out.println(cust + "," + item + "," + newqty);
+                            isCreated = true;
+                            break;
+                        } else {
+                            isCreated = false;
+                        }
+                    }
+
+                    if (!isCreated) {
+                        inner.add(custId);
+                        inner.add(itemId);
+                        inner.add("1");
+                        outer.add(inner);
+                        inner = new ArrayList<> ();
+                    }
+                }
+
             }
             st.close();
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
         
-//        System.out.println(dataList.size());
-        //ArrayList of Arraylist [(custID1, itemID1, satisfactionValue1), (custID1, itemID1, satisfactionValue1)]
-        //For each custID, there may be different itemIDs
-        //SatisfactionValue is calculated by taking qty of item ordered (so its not just +1)
-        ArrayList<ArrayList<String>> outer = new ArrayList<ArrayList<String>>();
-        ArrayList<String> inner = new ArrayList<String>();
-        
-        for (int i=0; i< dataList.size();i++) {
-            Data d = dataList.get(i);
-            String custId = Integer.toString(d.getCustomerId());
-            String itemId = d.getItem();
-            String qty = Integer.toString(d.getQuantity());
-            
-            //Check if custId and itemId already exists
-            for (ArrayList<String> list : outer) {
-                //If custId & itemId already exists, update satisfactionValue
-                if (list.contains(custId) & list.contains(itemId)) {
-                    String q = list.get(2);
-                    q = q + qty;
-                    list.add(2, q);
-                } else {
-                    //add values into inner arraylist (custID, itemID, satisfactionValue)
-                    inner.add(custId);
-                    inner.add(itemId);
-                    inner.add(qty);
-                    break;
-                }
-            }
-        }
+        System.out.println("outer size " + outer.size());
         
         //create satisfactionTable in db and add custId, itemId and satisfactionValues
         try {
@@ -134,7 +143,7 @@ public class LoadSatisfactionValues {
                 pstmt2 = conn.prepareStatement(SQLINSERT);
                 //loop through user list
                 for (ArrayList<String> x : outer) {
-                    pstmt2.setString(1, x.get(0));
+                    pstmt2.setInt(1, Integer.parseInt(x.get(0)));
                     pstmt2.setString(2, x.get(1));
                     pstmt2.setString(3, x.get(2));
                     pstmt2.addBatch();
