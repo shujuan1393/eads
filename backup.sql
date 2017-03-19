@@ -59,6 +59,17 @@ CREATE TABLE IF NOT EXISTS `category` (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 --
+-- Table structure for table `outlets`
+--
+
+CREATE TABLE IF NOT EXISTS `outlets` (
+  `outlet` varchar(30) NOT NULL,
+  `outletdistrict` int(11) NOT NULL,
+  `region` varchar(30) NOT NULL,
+  PRIMARY KEY(`outlet`, `outletdistrict`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
 -- Dumping data for table `category`
 --
 
