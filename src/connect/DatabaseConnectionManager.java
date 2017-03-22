@@ -27,11 +27,11 @@ public class DatabaseConnectionManager {
            Class.forName(JDBC_DRIVER).newInstance();
 
            //STEP 3: Open a connection
-           System.out.println("Connecting to database...");
+//           System.out.println("Connecting to database...");
            conn = DriverManager.getConnection(DB_URL, USER, PASS);
 
            //STEP 4: Execute a query
-           System.out.println("Creating database...");
+//           System.out.println("Creating database...");
            stmt = conn.createStatement();
            
            String sql = "CREATE TABLE IF NOT EXISTS `data` (\n" +
@@ -52,8 +52,8 @@ public class DatabaseConnectionManager {
                 ",\n" +
                 "   PRIMARY KEY(customerID, transactID, transactDetailsID))";
            stmt.executeUpdate(sql);
-           System.out.println("Table created successfully...");
-           System.out.println("Connection established");
+//           System.out.println("Table created successfully...");
+//           System.out.println("Connection established");
         }catch(SQLException se){
            //Handle errors for JDBC
            se.printStackTrace();
@@ -71,7 +71,7 @@ public class DatabaseConnectionManager {
 //              se.printStackTrace();
 //           }//end finally try
 //        }//end try
-        System.out.println("Goodbye!");
+//        System.out.println("Goodbye!");
         return conn;
     }//end 
 }//end JDBCExample

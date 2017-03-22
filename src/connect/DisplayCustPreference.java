@@ -30,9 +30,10 @@ import java.util.Set;
  * @author langxin
  */
 public class DisplayCustPreference {
-    public boolean displayPreference(Connection conn, int inputId, int numPax) throws SQLException {
+    public HashMap<String, String> displayPreference(Connection conn, int inputId, int numPax) throws SQLException {
         ArrayList<CustPreferenceWithTags> list = null;
-                
+        HashMap<String, String> toReturn = new HashMap<>();
+        
         try {
             // our SQL SELECT query. 
             // if you only need a few columns, specify them by name instead of using "*"
@@ -70,62 +71,28 @@ public class DisplayCustPreference {
             java.util.Date date = new java.util.Date();
             int hour = Integer.parseInt(dateFormat.format(date));
             
-            HashMap<String, Integer> teaTimeList = new HashMap<String, Integer>();
-            HashMap<String, Integer> lunchDinnerList = new HashMap<String, Integer>();
-            
-            System.out.println("list size:" + list.size());
+//            System.out.println("list size:" + list.size());
             
             for (CustPreferenceWithTags x: list) {
 //                System.out.println(x.toString());
                 String course = x.getCourse();
                 //exclude 'drinks' first
                 if (course.equals("snacks") || course.equals("side") || course.equals("dessert")) {
-                    teaTimeList.put(x.getItem_desc(), Integer.parseInt(x.getSatisfaction_value()));
+                    if(hour >= 15 && hour <= 18 || hour >= 20 && hour <= 22){
+                        //Recommend snacks/side/dessert
+                        toReturn.put(x.getItem_id(), x.getItem_desc());
+                    } 
+//                    teaTimeList.put(x.getItem_desc(), Integer.parseInt(x.getSatisfaction_value()));
                 } else if (course.equals("main")) {
-                    lunchDinnerList.put(x.getItem_desc(), Integer.parseInt(x.getSatisfaction_value()));
+                    toReturn.put(x.getItem_id(), x.getItem_desc());
                 }
             }
-            
-            //Sort teaTimeList & lunchDinnerList according to satisfaction values
-//            Map<String, Integer> teaTimeMap = sortByValues(teaTimeList); 
-//            Map<String, Integer> lunchDinnerMap = sortByValues(lunchDinnerList);
-            
-            System.out.println("Top " + numPax + " Recommendations: ");
-            
-            // if time of day between 3-6pm or 8-10pm
-            if(hour >= 15 && hour <= 18 || hour >= 20 && hour <= 22){
-                //Recommend snacks/side/dessert
-//                Set set2 = teaTimeMap.entrySet();
-                Set set2 = teaTimeList.entrySet();
-                Iterator iterator2 = set2.iterator();
-                int count = 0;
-                while(iterator2.hasNext()) {
-                    if (count < numPax) {
-                        Map.Entry me2 = (Map.Entry)iterator2.next();
-                        System.out.println(me2.getKey());
-                        count++;
-                    }
-                }
-            } else{
-               // recommend main
-//                Set set2 = lunchDinnerMap.entrySet();
-                Set set2 = lunchDinnerList.entrySet();
-                Iterator iterator2 = set2.iterator();
-                int count = 0;
-                while(iterator2.hasNext()) {
-                    if (count < numPax) {
-                        Map.Entry me2 = (Map.Entry)iterator2.next();
-                        System.out.println(me2.getKey());
-                        count++;
-                    }
-                }
-            }
-
+//            System.out.println("toReturn: "+toReturn.size());
             st.close();
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
-        return true;
+        return toReturn;
     }
 
 }
