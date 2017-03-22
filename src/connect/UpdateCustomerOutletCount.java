@@ -12,7 +12,8 @@ public class UpdateCustomerOutletCount {
     private static final String SQLCREATE = "CREATE TABLE IF NOT EXISTS `outletcount` (\n"
             + "  `customerid` int(11) NOT NULL,\n"
             + "  `outlet` varchar(200) NOT NULL,\n"
-            + "  `count` int(11) NOT NULL \n"
+            + "  `count` int(11) NOT NULL \n" +
+                "   PRIMARY KEY(customerid, outlet)"
             + ")";
 
     public static boolean updateCustomerOutletCount(Connection conn) {
@@ -35,7 +36,7 @@ public class UpdateCustomerOutletCount {
             PreparedStatement pstmt2 = conn.prepareStatement(SqlUpdateStmt);
 
             //select the data
-            String query = " SELECT distinct transacid,outlet , customerid  from data order by customerid";
+            String query = " SELECT distinct transactid,outlet , customerid  from data order by customerid";
 
             // create the java statement
             Statement st = conn.createStatement();

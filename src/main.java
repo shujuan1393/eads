@@ -3,6 +3,7 @@ import static connect.Bootstrap.*;
 import static connect.DatabaseConnectionManager.*;
 import connect.LoadCustPreference;
 import connect.LoadSatisfactionValues;
+import static connect.UpdateCustomerOutletCount.updateCustomerOutletCount;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -25,9 +26,10 @@ public class main {
 //        boolean success = bootstrap(conn);
         
 //        if (success) {
-            LoadSatisfactionValues satisfactionV = new LoadSatisfactionValues();
-            boolean satLoad = satisfactionV.loadSatisfactionValues(conn);
-
+//            LoadSatisfactionValues satisfactionV = new LoadSatisfactionValues();
+//            boolean satLoad = satisfactionV.loadSatisfactionValues(conn);
+                
+                boolean updateCustCount = updateCustomerOutletCount(conn);
 //            LoadCustPreference cust = new LoadCustPreference();
 //            boolean prefLoad = cust.loadPreference(conn);
 
