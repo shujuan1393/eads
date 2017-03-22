@@ -1,4 +1,5 @@
 
+import static connect.AverageSpending.updateUserAverageSpending;
 import static connect.Bootstrap.*;
 import static connect.DatabaseConnectionManager.*;
 import connect.DisplayCustPreference;
@@ -31,7 +32,6 @@ import java.util.Set;
 public class main {
     public static void main(String[] args) throws SQLException {
         Connection conn = connect();
-         
           //to load database
 //        boolean success = bootstrap(conn);
 //        if (success) {
@@ -41,11 +41,12 @@ public class main {
 //            LoadCustPreference cust = new LoadCustPreference();
 //            boolean prefLoad = cust.loadPreference(conn);
 //            boolean loadCustCount = updateCustomerOutletCount(conn);
+//            updateUserAverageSpending(conn);
 //            if (!prefLoad || !satLoad) {
 //                System.out.println("Error");
 //            }
 //        }
-
+        
         Scanner sc = null;
         HashMap<String, String> mainOrders = null;
         ArrayList<FoodCategory> drinkOrders = null;
