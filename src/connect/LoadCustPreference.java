@@ -1,10 +1,13 @@
 package connect;
 
+import entity.CustPreferenceWithTags;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 
 /*
@@ -19,7 +22,7 @@ import java.sql.Statement;
 public class LoadCustPreference {
 
     private static final String SQLCREATE = "CREATE TABLE IF NOT EXISTS `custPreference` (\n" +
-         "  `cust_id` varchar(10) NOT NULL,\n" +
+         "  `cust_id` int(11) NOT NULL,\n" +
          "  `item_id` varchar(10) NOT NULL,\n" +
          "  `item_desc` varchar(300) NOT NULL,\n" +
          "  `course` varchar(10) NOT NULL,\n" +
@@ -32,6 +35,8 @@ public class LoadCustPreference {
     private static final String SQLINSERT = "Insert into custPreference VALUES(?,?,?,?,?,?,?,?)";
     
     public boolean loadPreference(Connection conn) {
+        ArrayList<CustPreferenceWithTags> custTagList = null;
+        
         PreparedStatement pstmt = null;
         PreparedStatement pstmt2 = null; //for inserting into customer preference table
         
@@ -57,26 +62,21 @@ public class LoadCustPreference {
 
           // execute the query, and get a java resultset
           ResultSet rs = st.executeQuery(query);
-
+          
+          CustPreferenceWithTags custPref = new CustPreferenceWithTags(0, "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL");
           // iterate through the java resultset
           while (rs.next())
           {
-            String custId = rs.getString("cust_id");
-            String itemId = rs.getString("item_id");
-            String itemDesc = rs.getString("item_desc");
-            String course = rs.getString("course");
-            String origin = rs.getString("origin");
-            String tags = rs.getString("tags");
-            String hot_cold = rs.getString("hot_cold");
-            String satisfactionValue = rs.getString("satisfaction_value");
+            custPref.setCust_id(rs.getInt("cust_id"));
+            custPref.setItem_id(rs.getString("item_id"));
+            custPref.setItem_desc(rs.getString("item_desc"));
+            custPref.setCourse(rs.getString("course"));
+            custPref.setOrigin(rs.getString("origin"));
+            custPref.setTags(rs.getString("tags"));
+            custPref.setHot_cold(rs.getString("hot_cold"));
+            custPref.setSatisfaction_value(rs.getString("satisfaction_value"));
             
-            System.out.println("Customer ID: " + custId + ", Item ID: " + itemId + ", Item Description: " + itemDesc + ", Course: " + course + ", Origin: " + origin
-                                + ", Tags: " + tags + ", Hot/Cold? : " + hot_cold + ", Satisfaction Value: " + satisfactionValue);
-            
-            //WHATEVER WE WANNA DO WITH THIS COMBINED DATA
-          
-            
-            
+            custTagList.add(custPref);
           }
           st.close();
         }
@@ -84,6 +84,45 @@ public class LoadCustPreference {
         {
           System.err.println("Got an exception! ");
           System.err.println(e.getMessage());
+        }
+        
+        try {
+            ResultSet rs = null;
+                //establish connection, sql, execute sql
+            try {
+                //upload by batches
+                conn.setAutoCommit(false);
+                //total 556581
+                pstmt2 = conn.prepareStatement(SQLINSERT);
+                //loop through user list
+                for (CustPreferenceWithTags x : custTagList) {
+                    
+                    pstmt2.setInt(1, x.getCust_id());
+                    pstmt2.setString(2, x.getItem_id());
+                    pstmt2.setString(3, x.getItem_desc());
+                    pstmt2.setString(4, x.getCourse());
+                    pstmt2.setString(5, x.getOrigin());
+                    pstmt2.setString(6, x.getTags());
+                    pstmt2.setString(7, x.getHot_cold());
+                    pstmt2.setString(8, x.getSatisfaction_value());
+                    
+                    pstmt2.addBatch();
+                }
+                //System.out.println(pstmt);
+                pstmt2.executeBatch();
+                conn.commit();
+            } catch (SQLException k) {
+                k.printStackTrace();
+            }  finally {
+//                if (conn != null) {
+//                    connect.DatabaseConnectionManager.closeConnection(conn);
+//                }
+//                if (pstmt2 != null) {
+//                    pstmt2.close();
+//                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return true;

@@ -30,11 +30,11 @@ public class RecommendDrinkDessertFromTemp {
 
     private static final String SQLSELECT = "SELECT * FROM category WHERE hot_cold = ? AND course in (?,?)";
 
-    public static void main(String[] args) {
-        recommendDrinkDessertFromTemp();
-    }
+//    public static void main(String[] args) {
+//        recommendDrinkDessertFromTemp();
+//    }
 
-    public static ArrayList<FoodCategory> recommendDrinkDessertFromTemp() {
+    public static ArrayList<FoodCategory> recommendDrinkDessertFromTemp(String type) {
         ArrayList<FoodCategory> result = new ArrayList<>();
         double temp = getCurrentTemp();
         String hotOrCold = "hot";
@@ -46,7 +46,7 @@ public class RecommendDrinkDessertFromTemp {
         Connection conn = DatabaseConnectionManager.connect();
         PreparedStatement pstmt = null;
         ResultSet resultSet = null;
-
+        int count = 0;
         try {
             pstmt = conn.prepareStatement(SQLSELECT);
             pstmt.setString(1, hotOrCold);
@@ -62,8 +62,14 @@ public class RecommendDrinkDessertFromTemp {
                 String tags = resultSet.getString(5);
                 String hotCold = resultSet.getString(6);
                 FoodCategory foodCategory = new FoodCategory(itemID, itemDesc, course, origin, tags, hotCold);
-                System.out.println(""+itemID + " " + itemDesc +" " + course + " " + origin + " " + tags + " " +hotCold);
-                result.add(foodCategory);
+                
+//                    System.out.println(""+itemID + " " + itemDesc +" " + course + " " + origin + " " + tags + " " +hotCold);
+                if (course.equals(type)) {
+                    result.add(foodCategory);
+                    count++;
+                }
+                    
+                 
             }
             resultSet.close();
             pstmt.close();
@@ -95,7 +101,7 @@ public class RecommendDrinkDessertFromTemp {
                 double tempHigh = Double.parseDouble(temperatureHigh);
                 double tempLow = Double.parseDouble(temperatureLow);
                 tempAvg = (tempHigh + tempLow) / 2;
-                System.out.println("Average temperature now is: " + tempAvg);
+//                System.out.println("Average temperature now is: " + tempAvg);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -113,8 +119,8 @@ public class RecommendDrinkDessertFromTemp {
         HttpURLConnection con = (HttpURLConnection)obj.openConnection();
         con.setRequestMethod("GET");
         int responseCode = con.getResponseCode();
-        System.out.println("\nSending 'GET' request to URL : "+ url);
-        System.out.println("Response Code : "+ responseCode);
+//        System.out.println("\nSending 'GET' request to URL : "+ url);
+//        System.out.println("Response Code : "+ responseCode);
 
         // Step 3: Check the response status
         if (responseCode == 200) {

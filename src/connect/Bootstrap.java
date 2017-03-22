@@ -3,6 +3,7 @@ package connect;
 import entity.Data;
 import com.monitorjbl.xlsx.StreamingReader;
 import entity.Customer;
+import entity.Outlet;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -35,29 +36,31 @@ public class Bootstrap {
          "  `spending` double NOT NULL,\n" +
                 "   PRIMARY KEY(`customerid`))";
     
+    private static final String OUTLETCREATE = "CREATE TABLE IF NOT EXISTS `outlets` (\n" +
+         "  `outlet` varchar(30) NOT NULL,\n" +
+         "  `outletdistrict` int(11) NOT NULL,\n" +
+         "  `region` varchar(30) NOT NULL,\n" +
+                "   PRIMARY KEY(`outlet`, `outletdistrict`))";
+    
     public static boolean bootstrap(Connection conn) {
         PreparedStatement userpmt = null;
+        PreparedStatement outletpmt = null;
         PreparedStatement insertUser = null;
+        PreparedStatement insertOutlets = null;
         try {
-            //File myFile = new File("C://Users//User 2//Documents//SMUX - Outlet Data V1.xlsx");
-            //File myFile = new File("C://Users//User 2//Documents//SMUX - Outlet Data V1.xlsx");
-
-            //FileInputStream fis = new FileInputStream(myFile);
-            // Finds the workbook instance for XLSX file
-            //XSSFWorkbook myWorkBook = new XSSFWorkbook(fis);
-            // Return first sheet from the XLSX workbook
-            //XSSFSheet mySheet = myWorkBook.getSheetAt(0);
-            // Get iterator to all the rows in current sheet
-            //Iterator<Row> rowIterator = mySheet.iterator();
             userpmt = conn.prepareStatement(SQLCREATE);
             userpmt.executeUpdate();
+            outletpmt = conn.prepareStatement(OUTLETCREATE);
+            outletpmt.executeUpdate();
+            
             int noOfLines = 0;
 
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd"); //for transact date
             DateFormat df2 = new SimpleDateFormat("h:mm:ss a"); //for transact time
             Calendar time = Calendar.getInstance();
-            ArrayList<Data> list = new ArrayList<Data>();
-            ArrayList<Customer> clist = new ArrayList<Customer>();
+            ArrayList<Data> list = new ArrayList<>();
+            ArrayList<Customer> clist = new ArrayList<>();
+            ArrayList<Outlet> olist = new ArrayList<>();
             
             InputStream is = new FileInputStream(new File("/Users/smu/Documents/Y4/S2/Enterprise Analytics/Project/SMUX - Outlet Data V1.xlsx"));
 
@@ -74,9 +77,9 @@ public class Bootstrap {
                 //initialize a data object
                 Data data = new Data(0, 0, "NULL", 0, "NULL", "", "Outlet", 0, 0, "", "", 0, 0, 0);
                 Customer cust = new Customer(0, 0, "", 0);
+                Outlet out = new Outlet("", 0, "");
                 
                 if (noOfLines > 0) {
-
                     // For each row, iterate through each columns
                     Iterator<Cell> cellIterator = r.cellIterator();
                     while (cellIterator.hasNext()) {
@@ -126,10 +129,12 @@ public class Bootstrap {
                                 break;
                             case 6: //outlet
                                 data.setOutlet(cell.getStringCellValue());
+                                out.setOutlet(data.getOutlet());
                                 //System.out.println("case 6");
                                 break;
                             case 7: //outlet district
                                 data.setOutletDistrict((int) cell.getNumericCellValue());
+                                out.setOutletDistrict(data.getOutletDistrict());
                                 //System.out.println("case 7");
                                 break;
                             case 8: //transact details id
@@ -190,6 +195,76 @@ public class Bootstrap {
                         clist.add(cust);         
                     }
                 }
+                //3, 4 south
+                //1, 2, 6, 7, 8, 9, 10, 11, 12 CBD
+                //5, 21, 22, 23, 24 west
+                //13, 14, 15, 16, 17, 18 east
+                //19, 20, 25, 26, 27, 28 north
+                switch (out.getOutletDistrict()) {
+                    case 3:
+                    case 4:
+                        out.setRegion("South");
+                        break;
+                    case 1:
+                    case 2:
+                    case 6:
+                    case 7:
+                    case 8:
+                    case 9:
+                    case 10:
+                    case 11:
+                    case 12:
+                        out.setRegion("CBD");
+                        break;
+                    case 5:
+                    case 21:
+                    case 22:
+                    case 23:
+                    case 24:
+                        out.setRegion("West");
+                        break;
+                    case 13:
+                    case 14:
+                    case 15:
+                    case 16:
+                    case 17:
+                    case 18:
+                        out.setRegion("East");
+                        break;
+                    case 19:
+                    case 20:
+                    case 25:
+                    case 26:
+                    case 27:
+                    case 28:
+                        out.setRegion("North");
+                        break;
+                    default:
+                        break;
+                }
+                
+                if (olist.isEmpty()) {
+                    olist.add(out);
+                } else {
+                    boolean isCreated = false;
+                    for (Outlet o : olist) {
+                        String storedOutlet = o.getOutlet();
+                        int storedDistrict = o.getOutletDistrict();
+//                        System.out.println(storedOutlet + ", " + storedDistrict);
+                        String curOutlet = out.getOutlet();
+                        int curDistrict = out.getOutletDistrict();
+//                        System.out.println("Current " + curOutlet + ", " + curDistrict);
+                        if(storedOutlet.equals(curOutlet) && storedDistrict == curDistrict) {
+                            isCreated = true;
+                            break;
+                        }
+                    }
+                    if (!isCreated) {
+                        olist.add(out);
+                    }
+                }
+                
+//                System.out.println(olist.size());
                 
                 noOfLines++;
                 if (noOfLines == 32740 ) {
@@ -198,6 +273,7 @@ public class Bootstrap {
                     try {
                         String sql = "Insert into data VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
                         String users = "Insert into users VALUES(?,?,?,?)";
+                        String outs = "Insert into outlets VALUES(?,?,?)";
                         PreparedStatement pstmt = null;
                         ResultSet rs = null;
                         //upload by batches
@@ -206,6 +282,7 @@ public class Bootstrap {
                         
                         pstmt = conn.prepareStatement(sql);
                         insertUser = conn.prepareStatement(users);
+                        insertOutlets = conn.prepareStatement(outs);
                         
                         //loop through user list
                         for (Data d : list) {
@@ -235,6 +312,15 @@ public class Bootstrap {
                         }
                         //System.out.println(pstmt);
                         insertUser.executeBatch();
+                       
+                        for (Outlet d : olist) {
+                            insertOutlets.setString(1, d.getOutlet());
+                            insertOutlets.setInt(2, d.getOutletDistrict());
+                            insertOutlets.setString(3, d.getRegion());
+                            insertOutlets.addBatch();
+                        }
+                        //System.out.println(pstmt);
+                        insertOutlets.executeBatch();
                         
                         //System.out.println(pstmt);
                         pstmt.executeBatch();

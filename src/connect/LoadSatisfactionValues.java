@@ -123,7 +123,7 @@ public class LoadSatisfactionValues {
             System.err.println(e.getMessage());
         }
         
-        System.out.println("outer size " + outer.size());
+//        System.out.println("outer size " + outer.size());
         
         //create satisfactionTable in db and add custId, itemId and satisfactionValues
         try {
