@@ -3,7 +3,9 @@ import static connect.AverageSpending.updateUserAverageSpending;
 import static connect.Bootstrap.*;
 import static connect.DatabaseConnectionManager.*;
 import connect.DisplayCustPreference;
+import static connect.LoadCategory.loadCategory;
 import connect.LoadCustPreference;
+import static connect.LoadCustPreference.loadPreference;
 import connect.LoadSatisfactionValues;
 import static connect.RecommendDrinkDessertFromTemp.recommendDrinkDessertFromTemp;
 import static connect.UpdateCustomerOutletCount.updateCustomerOutletCount;
@@ -37,17 +39,15 @@ public class main {
 //        if (success) {
 //            LoadSatisfactionValues satisfactionV = new LoadSatisfactionValues();
 //            boolean satLoad = satisfactionV.loadSatisfactionValues(conn);
-                
-//                boolean updateCustCount = updateCustomerOutletCount(conn);
-//            LoadCustPreference cust = new LoadCustPreference();
-//            boolean prefLoad = cust.loadPreference(conn);
-//            boolean loadCustCount = updateCustomerOutletCount(conn);
+//            boolean catLoad = loadCategory(conn);    
+//            boolean updateCustCount = updateCustomerOutletCount(conn);
+//             boolean prefLoad = loadPreference(conn);
 //            updateUserAverageSpending(conn);
 //            if (!prefLoad || !satLoad) {
 //                System.out.println("Error");
 //            }
 //        }
-        
+//        
         Scanner sc = null;
         HashMap<String, String> mainOrders = null;
         ArrayList<FoodCategory> drinkOrders = null;

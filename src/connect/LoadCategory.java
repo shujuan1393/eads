@@ -30,13 +30,14 @@ import org.apache.poi.ss.usermodel.Row;
 public class LoadCategory {
 
     private static final String SQLCREATE = "CREATE TABLE IF NOT EXISTS `category` (\n" +
-         "  `item_id` varchar(200) NOT NULL,\n" +
-         "  `item_desc` varchar(300) NOT NULL,\n" +
-         "  `course` varchar(10) NOT NULL,\n" +
-         "  `origin` varchar(50) NOT NULL,\n" +
-         "  `tags` varchar(255) NOT NULL,\n" +
-         "  `hot_cold` varchar(10) NOT NULL\n" +
-         ")";
+"  `item_id` varchar(200) NOT NULL,\n" +
+"  `item_desc` varchar(300) NOT NULL,\n" +
+"  `course` varchar(10) NOT NULL,\n" +
+"  `origin` varchar(50) NOT NULL,\n" +
+"  `tags` varchar(255) NOT NULL,\n" +
+"  `hot_cold` varchar(10) NOT NULL,\n" +
+"  PRIMARY KEY(`item_id`, `item_desc`)\n" +
+") ENGINE=MyISAM DEFAULT CHARSET=latin1;";
 
     private static final String SQLINSERT = "Insert into category VALUES(?,?,?,?,?,?)";
     
@@ -49,7 +50,7 @@ public class LoadCategory {
             ResultSet rs = null;
             
             ArrayList<FoodCategory> list = new ArrayList<>();
-            InputStream is = new FileInputStream(new File("C:/Users/User/Dropbox/Y4S2/EADS/Project/category.xlsx"));
+            InputStream is = new FileInputStream(new File("/Users/smu/Documents/Y4/S2/Enterprise Analytics/Project/category.xlsx"));
 
             StreamingReader reader = StreamingReader.builder()
                     .rowCacheSize(100) // number of rows to keep in memory (defaults to 10)

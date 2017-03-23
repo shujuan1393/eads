@@ -111,7 +111,6 @@ public class UpdateCustomerOutletCount {
 
             try {
                 // actually execute the batch updates
-
                 pstmt2.executeBatch();
                 conn.commit();
             } catch (Exception k) {
