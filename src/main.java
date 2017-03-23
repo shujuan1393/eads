@@ -125,7 +125,7 @@ public class main {
                     System.out.print("\nEnter your choice: ");
                     choice = sc.nextInt();
                     
-                    if (choice < itemIds.size()) {
+                    if (choice <= itemIds.size()) {
                         orders.put(itemIds.get(choice-1), itemDescs.get(choice-1));
                     }
                     
@@ -155,7 +155,7 @@ public class main {
                     System.out.print("\nEnter your choice: ");
                     choice = sc.nextInt();
 
-                    if (choice < drinkDesRecom.size()) {
+                    if (choice <= drinkDesRecom.size()) {
                         orders.add(drinkDesRecom.get(choice-1));
                     }
 
@@ -199,8 +199,8 @@ public class main {
             for (FoodCategory f: desserts) {
                 System.out.println(f.getItemDesc());
             }
+            System.out.println();
         }
-        System.out.println();
         
         System.out.println("Thank you for ordering with us!");
     }
