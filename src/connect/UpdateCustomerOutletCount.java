@@ -16,7 +16,9 @@ public class UpdateCustomerOutletCount {
                 "   PRIMARY KEY (customerid, outlet)"
             + ")";
 
-    public static boolean updateCustomerOutletCount(Connection conn) {
+    public static boolean updateCustomerOutletCount() {
+        Connection conn = DatabaseConnectionManager.connect();
+
         try {
             // store customer ID, hashmap of outlet id and visit count
             HashMap<Integer, HashMap<String, Integer>> customerOutletCount = new HashMap<>();

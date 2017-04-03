@@ -57,11 +57,12 @@ public class RecommendDrinkDessertFromTemp {
             while (resultSet.next()) {
                 String itemID = resultSet.getString(1);
                 String itemDesc = resultSet.getString(2);
-                String course = resultSet.getString(3);
-                String origin = resultSet.getString(4);
-                String tags = resultSet.getString(5);
-                String hotCold = resultSet.getString(6);
-                FoodCategory foodCategory = new FoodCategory(itemID, itemDesc, course, origin, tags, hotCold);
+                double price = resultSet.getDouble(3);
+                String course = resultSet.getString(4);
+                String origin = resultSet.getString(5);
+                String tags = resultSet.getString(6);
+                String hotCold = resultSet.getString(7);
+                FoodCategory foodCategory = new FoodCategory(itemID, itemDesc, price, course, origin, tags, hotCold);
                 
 //                    System.out.println(""+itemID + " " + itemDesc +" " + course + " " + origin + " " + tags + " " +hotCold);
                 if (course.equals(type)) {

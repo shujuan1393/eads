@@ -13,18 +13,26 @@ package entity;
 public class FoodCategory {
     private String item_id;
     private String itemDesc;
+    private double price;
     private String course;
     private String origin;
     private String tags;
     private String hotcold;
 
-    public FoodCategory(String item_id, String itemDesc, String course, String origin, String tags, String hotcold) {
+    public FoodCategory(String item_id, String itemDesc, double price, String course, String origin, String tags, String hotcold) {
         this.item_id = item_id;
         this.itemDesc = itemDesc;
+        this.price = price;
         this.course = course;
         this.origin = origin;
         this.tags = tags;
         this.hotcold = hotcold;
+    }
+
+    public FoodCategory(String item_id, String itemDesc, double price) {
+        this.item_id = item_id;
+        this.itemDesc = itemDesc;
+        this.price = price;
     }
 
     public String getItem_id() {
@@ -35,7 +43,14 @@ public class FoodCategory {
         this.item_id = item_id;
     }
 
-    
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
     public String getItemDesc() {
         return itemDesc;
     }

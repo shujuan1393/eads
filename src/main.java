@@ -2,13 +2,9 @@
 import static connect.AverageSpending.updateUserAverageSpending;
 import static connect.Bootstrap.*;
 import static connect.DatabaseConnectionManager.*;
-import connect.DisplayCustPreference;
-import static connect.LoadCategory.loadCategory;
-import connect.LoadCustPreference;
-import static connect.LoadCustPreference.loadPreference;
-import connect.LoadSatisfactionValues;
-import static connect.RecommendDrinkDessertFromTemp.recommendDrinkDessertFromTemp;
-import static connect.UpdateCustomerOutletCount.updateCustomerOutletCount;
+
+import connect.*;
+
 import entity.FoodCategory;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -33,21 +29,35 @@ import java.util.Set;
 
 public class main {
     public static void main(String[] args) throws SQLException {
-        Connection conn = connect();
-          //to load database
-//        boolean success = bootstrap(conn);
+
+        if (CreateTables.createTables()) {
+            //to load database
+            //boolean success = bootstrap();
+            //LoadOutlet.loadOutlet();
+            //LoadUser.loadUser();
+            //LoadCategory.loadCategory();
+            //LoadSatisfactionValues.loadSatisfactionValues();
+            //LoadSimilarity.loadSimilarity();
+
+            Scanner sc = new Scanner(System.in);
+            // input member id
+
+            System.out.print("Please input member id: ");
+            int memberId = sc.nextInt();
+            LoadSimilarity.processSimilarity(memberId);
+        }
+
 //        if (success) {
-//            LoadSatisfactionValues satisfactionV = new LoadSatisfactionValues();
-//            boolean satLoad = satisfactionV.loadSatisfactionValues(conn);
 //            boolean catLoad = loadCategory(conn);    
-//            boolean updateCustCount = updateCustomerOutletCount(conn);
+            //boolean updateCustCount = UpdateCustomerOutletCount.updateCustomerOutletCount();
 //             boolean prefLoad = loadPreference(conn);
 //            updateUserAverageSpending(conn);
 //            if (!prefLoad || !satLoad) {
 //                System.out.println("Error");
 //            }
 //        }
-//        
+//
+        /*
         Scanner sc = null;
         HashMap<String, String> mainOrders = null;
         ArrayList<FoodCategory> drinkOrders = null;
@@ -87,7 +97,7 @@ public class main {
             if (sc != null) {
                 sc.close();
             }
-        }
+        }*/
     }
     
     public static void printMenu() {
@@ -140,7 +150,7 @@ public class main {
     
     public static ArrayList<FoodCategory> orderDrinksDesserts(int paxNum, Scanner sc, String type) {
         ArrayList<FoodCategory> orders = new ArrayList<>();
-        ArrayList<FoodCategory> drinkDesRecom = recommendDrinkDessertFromTemp(type);
+        ArrayList<FoodCategory> drinkDesRecom = RecommendDrinkDessertFromTemp.recommendDrinkDessertFromTemp(type);
         
         if (drinkDesRecom != null) {
             System.out.println("Recommended " + type);

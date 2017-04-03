@@ -14,12 +14,14 @@ public class Customer {
     private int age;
     private String gender;
     private double spending;
+    private int totalTransaction;
     
-    public Customer(int customerId, int age, String gender, double spending) {
+    public Customer(int customerId, int age, String gender, double spending, int totalTransaction) {
         this.customerId = customerId;
         this.age = age;
         this.gender = gender;
         this.spending = spending;
+        this.totalTransaction = totalTransaction;
     }
 
     public int getCustomerId() {
@@ -52,6 +54,14 @@ public class Customer {
 
     public void setSpending(double spending) {
         this.spending = spending;
+    }
+
+    public int getTotalTransaction() {
+        return totalTransaction;
+    }
+
+    public void setTotalTransaction(int totalTransaction) {
+        this.totalTransaction = totalTransaction;
     }
 
     @Override

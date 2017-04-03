@@ -1,6 +1,5 @@
 package connect;
 
-import entity.Data;
 import com.monitorjbl.xlsx.StreamingReader;
 import entity.FoodCategory;
 import java.io.File;
@@ -10,11 +9,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Iterator;
+
+import entity.Outlet;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 
@@ -29,28 +28,20 @@ import org.apache.poi.ss.usermodel.Row;
  */
 public class LoadCategory {
 
-    private static final String SQLCREATE = "CREATE TABLE IF NOT EXISTS `category` (\n" +
-"  `item_id` varchar(200) NOT NULL,\n" +
-"  `item_desc` varchar(300) NOT NULL,\n" +
-"  `course` varchar(10) NOT NULL,\n" +
-"  `origin` varchar(50) NOT NULL,\n" +
-"  `tags` varchar(255) NOT NULL,\n" +
-"  `hot_cold` varchar(10) NOT NULL,\n" +
-"  PRIMARY KEY(`item_id`, `item_desc`)\n" +
-") ENGINE=MyISAM DEFAULT CHARSET=latin1;";
-
-    private static final String SQLINSERT = "Insert into category VALUES(?,?,?,?,?,?)";
+    private static final String SELECTUNIQUECATEGORY = "SELECT DISTINCT item, itemdesc, min(price) FROM data GROUP BY item, itemdesc";
+    private static final String INSERTCATEGORYSQL = "INSERT INTO category VALUES (?,?,?,?,?,?,?)";
     
-    public static boolean loadCategory(Connection conn) {
-        
+    public static boolean loadCategory() {
+        Connection conn = DatabaseConnectionManager.connect();
+        PreparedStatement pstmt = null;
+        PreparedStatement pstmt2 = null;
+        ResultSet rs = null;
+
         try {
             int noOfLines = 0;
-            PreparedStatement pstmt = null;
-            PreparedStatement pstmt2 = null;
-            ResultSet rs = null;
-            
-            ArrayList<FoodCategory> list = new ArrayList<>();
-            InputStream is = new FileInputStream(new File("/Users/smu/Documents/Y4/S2/Enterprise Analytics/Project/category.xlsx"));
+
+            HashMap<String, FoodCategory> foodCategoryHashMap = new HashMap<>();
+            InputStream is = new FileInputStream(new File("./excel/category.xlsx"));
 
             StreamingReader reader = StreamingReader.builder()
                     .rowCacheSize(100) // number of rows to keep in memory (defaults to 10)
@@ -60,8 +51,8 @@ public class LoadCategory {
             int counter = 0;
             for (Row r : reader) {
                 counter++;
-                
-                FoodCategory foodCategory = new FoodCategory("", "", "", "", "", "");
+
+                FoodCategory foodCategory = new FoodCategory("", "", 0.0,"", "", "", "");
                 if (noOfLines > 0) {
 
                     // For each row, iterate through each columns
@@ -69,79 +60,93 @@ public class LoadCategory {
                     while (cellIterator.hasNext()) {
                         Cell cell = cellIterator.next();
                         int cellIndex = cell.getColumnIndex();
-                        //System.out.println("2");
-                        //System.out.println("cellIndex = " + cellIndex);
                         switch (cellIndex) {
-                            case 0: //item id
-
+                            case 0:
                                 foodCategory.setItem_id(cell.getStringCellValue());
-                                //System.out.println("case 0");
                                 break;
-                            case 1: //item desc
+                            case 1:
                                 foodCategory.setItemDesc(cell.getStringCellValue());
                                 break;
-                            case 2: //course
+                            case 2:
                                 foodCategory.setCourse(cell.getStringCellValue());
                                 break;
-                            case 3: //transact id
+                            case 3:
                                 foodCategory.setOrigin(cell.getStringCellValue());
-                                //System.out.println("Transact id = " + data.getTransactId() );
-                                //System.out.println("case 3");
                                 break;
-                            case 4: //transact date
+                            case 4:
                                 foodCategory.setTags(cell.getStringCellValue());
-                                //System.out.println("case 4");
                                 break;
-                            case 5: //transact time
+                            case 5:
                                 foodCategory.setHotcold(cell.getStringCellValue());
                                 break;
                             default:
                         }
                     }
-                    list.add(foodCategory);
-
-                    //System.out.println("");
+                    foodCategoryHashMap.put(foodCategory.getItem_id()+"|"+foodCategory.getItemDesc(), foodCategory);
                 }
                 noOfLines++;
             }
-                //establish connection, sql, execute sql
-            try {
-//                conn = connect.DatabaseConnectionManager.getConnection();
-                pstmt = conn.prepareStatement(SQLCREATE);
-                pstmt.executeUpdate();
-              
-                //upload by batches
-                conn.setAutoCommit(false);
-                //total 556581
-                pstmt2 = conn.prepareStatement(SQLINSERT);
-                //loop through user list
-                for (FoodCategory d : list) {
-                    pstmt2.setString(1, d.getItem_id());
-                    pstmt2.setString(2, d.getItemDesc());
-                    pstmt2.setString(3, d.getCourse());
-                    pstmt2.setString(4, d.getOrigin());
-                    pstmt2.setString(5, d.getTags());
-                    pstmt2.setString(6, d.getHotcold());
-                    pstmt2.addBatch();
+
+
+            pstmt = conn.prepareStatement(SELECTUNIQUECATEGORY);
+            rs = pstmt.executeQuery();
+
+            ArrayList<FoodCategory>  foodCategoryList = new ArrayList<>();
+            while (rs.next()) {
+                String item = rs.getString(1);
+                String itemdesc = rs.getString(2);
+                double price = rs.getDouble(3);
+                foodCategoryList.add(new FoodCategory(item, itemdesc, price));
+            }
+
+            conn.setAutoCommit(false);
+            pstmt2 = conn.prepareStatement(INSERTCATEGORYSQL);
+
+            for (FoodCategory foodCategory: foodCategoryList) {
+                pstmt2.setString(1, foodCategory.getItem_id());
+                pstmt2.setString(2, foodCategory.getItemDesc());
+                pstmt2.setDouble(3, foodCategory.getPrice());
+
+                String key = foodCategory.getItem_id()+"|"+foodCategory.getItemDesc();
+                FoodCategory mapFoodCategory = foodCategoryHashMap.get(key);
+                if (mapFoodCategory == null) {
+                    continue;
                 }
-                //System.out.println(pstmt);
-                pstmt2.executeBatch();
-                conn.commit();
-                System.out.println("current counter = " + counter);
-            } catch (SQLException k) {
-                k.printStackTrace();
-            }  finally {
-//            if (conn != null) {
-//                connect.DatabaseConnectionManager.closeConnection(conn);
-//            }
-//            if (pstmt2 != null) {
-//                pstmt2.close();
-//            }
-        }
-            list.clear();
-           
+
+                pstmt2.setString(4, mapFoodCategory.getCourse());
+                pstmt2.setString(5, mapFoodCategory.getOrigin());
+                pstmt2.setString(6, mapFoodCategory.getTags());
+                pstmt2.setString(7, mapFoodCategory.getHotcold());
+                pstmt2.addBatch();
+            }
+            pstmt2.executeBatch();
+            conn.commit();
+            conn.setAutoCommit(true);
+
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            if (conn!= null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (pstmt2 != null) {
+                try {
+                    pstmt2.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
         return true;

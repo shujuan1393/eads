@@ -35,7 +35,8 @@ public class DisplayCustPreference {
         HashMap<String, String> toReturn = new HashMap<>();
         
         try {
-            // our SQL SELECT query. 
+            // our SQ
+            // L SELECT query.
             // if you only need a few columns, specify them by name instead of using "*"
             String query = "SELECT c.item_id, c.item_desc, c.course, c.origin, c.tags, c.hot_cold, "
                     + "s.satisfaction_value, d.customerid, d.transactid FROM category c inner join "

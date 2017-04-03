@@ -13,9 +13,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
+import java.util.*;
+
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 
@@ -29,42 +28,24 @@ import org.apache.poi.ss.usermodel.Row;
  * @author User 2
  */
 public class Bootstrap {
-    private static final String SQLCREATE = "CREATE TABLE IF NOT EXISTS `users` (\n" +
-         "  `customerid` varchar(10) NOT NULL,\n" +
-         "  `age` varchar(10) NOT NULL,\n" +
-         "  `gender` varchar(50) NOT NULL,\n" +
-         "  `spending` double NOT NULL,\n" +
-                "   PRIMARY KEY(`customerid`))";
-    
-    private static final String OUTLETCREATE = "CREATE TABLE IF NOT EXISTS `outlets` (\n" +
-         "  `outlet` varchar(30) NOT NULL,\n" +
-         "  `outletdistrict` int(11) NOT NULL,\n" +
-         "  `region` varchar(30) NOT NULL,\n" +
-                "   PRIMARY KEY(`outlet`, `outletdistrict`))";
-    
-    public static boolean bootstrap(Connection conn) {
-        PreparedStatement userpmt = null;
-        PreparedStatement outletpmt = null;
-        PreparedStatement insertUser = null;
-        PreparedStatement insertOutlets = null;
+
+    private static DateFormat df = new SimpleDateFormat("yyyy-MM-dd"); //for transact date
+    private static DateFormat df2 = new SimpleDateFormat("h:mm:ss a"); //for transact time
+    private static Calendar time = Calendar.getInstance();
+
+    public static boolean bootstrap() {
+        Connection conn = DatabaseConnectionManager.connect();
+
         try {
-            userpmt = conn.prepareStatement(SQLCREATE);
-            userpmt.executeUpdate();
-            outletpmt = conn.prepareStatement(OUTLETCREATE);
-            outletpmt.executeUpdate();
             
             int noOfLines = 0;
 
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd"); //for transact date
-            DateFormat df2 = new SimpleDateFormat("h:mm:ss a"); //for transact time
-            Calendar time = Calendar.getInstance();
             ArrayList<Data> list = new ArrayList<>();
-            ArrayList<Customer> clist = new ArrayList<>();
-            ArrayList<Outlet> olist = new ArrayList<>();
+            Set<Customer> clist = new HashSet<>();
+            Set<Outlet> olist = new HashSet<>();
             
-            InputStream is = new FileInputStream(new File("/Users/smu/Documents/Y4/S2/Enterprise Analytics/Project/SMUX - Outlet Data V1.xlsx"));
+            InputStream is = new FileInputStream(new File("./excel/SMUX - Outlet Data V1.xlsx"));
 
-//            InputStream is = new FileInputStream(new File("C://Users//User 2//Documents//SMUX - Outlet Data V1.xlsx"));
             StreamingReader reader = StreamingReader.builder()
                     .rowCacheSize(100) // number of rows to keep in memory (defaults to 10)
                     .bufferSize(4096) // buffer size to use when reading InputStream to file (defaults to 1024)
@@ -76,8 +57,6 @@ public class Bootstrap {
 
                 //initialize a data object
                 Data data = new Data(0, 0, "NULL", 0, "NULL", "", "Outlet", 0, 0, "", "", 0, 0, 0);
-                Customer cust = new Customer(0, 0, "", 0);
-                Outlet out = new Outlet("", 0, "");
                 
                 if (noOfLines > 0) {
                     // For each row, iterate through each columns
@@ -85,20 +64,16 @@ public class Bootstrap {
                     while (cellIterator.hasNext()) {
                         Cell cell = cellIterator.next();
                         int cellIndex = cell.getColumnIndex();
-                        //System.out.println("2");
-                        //System.out.println("cellIndex = " + cellIndex);
+
                         switch (cellIndex) {
                             case 0: //customer id
                                 int custid = (int) cell.getNumericCellValue();
                                 data.setCustomerId(custid);
-                                cust.setCustomerId(custid);
-                                //System.out.println("case 0");
                                 break;
                             case 1: //age
                                 try {
                                     int age = (int) cell.getNumericCellValue();
                                     data.setAge(age);
-                                    cust.setAge(age);
                                 } catch (Exception e) {
                                     //leave it as 0
                                 }
@@ -107,183 +82,62 @@ public class Bootstrap {
                             case 2: //gender
                                 String gender = cell.getStringCellValue(); 
                                 data.setGender(gender);
-                                cust.setGender(gender);
                                 //System.out.println("case 2");
                                 break;
                             case 3: //transact id
                                 data.setTransactId((int) cell.getNumericCellValue());
-                                //System.out.println("Transact id = " + data.getTransactId() );
-                                //System.out.println("case 3");
                                 break;
                             case 4: //transact date
                                 data.setTransactDate(df.format(cell.getDateCellValue()));
-                                //System.out.println("case 4");
                                 break;
                             case 5: //transact time
                                 time.setTime(cell.getDateCellValue());
-                               //System.out.println("case 5 " + df2.format(time.getTime()) );
                                 data.setTransactTime(df2.format(time.getTime()));
-                                //data.setTransactTime(df2.format(cell.getNumericCellValue()));
-                                //System.out.println("case 5 " + cell.getNumericCellValue());
-                                //System.out.println("case 5 " + df2.format(cell.getNumericCellValue()));
                                 break;
                             case 6: //outlet
                                 data.setOutlet(cell.getStringCellValue());
-                                out.setOutlet(data.getOutlet());
-                                //System.out.println("case 6");
                                 break;
                             case 7: //outlet district
                                 data.setOutletDistrict((int) cell.getNumericCellValue());
-                                out.setOutletDistrict(data.getOutletDistrict());
-                                //System.out.println("case 7");
                                 break;
                             case 8: //transact details id
                                 data.setTransactDetailsId((int) cell.getNumericCellValue());
-                                //System.out.println("case 8");
                                 break;
                             case 9: //item
                                 //try {
                                 data.setItem(cell.getStringCellValue());
-                                //} catch (Exception e) {
-                                //  data.setItem(String.valueOf((int) cell.getNumericCellValue()));
-                                //}
-                                //System.out.println("case 9");
                                 break;
                             case 10: //item description
                                 data.setItemDesc(cell.getStringCellValue());
-                                //System.out.println("case 10");
                                 break;
                             case 11: //quantity
                                 data.setQuantity((int) cell.getNumericCellValue());
-                                //System.out.println("case 11");
                                 break;
                             case 12: //price
                                 data.setPrice(cell.getNumericCellValue());
-                                //System.out.println("case 12");
                                 break;
                             case 13: //spending
                                 double spending = cell.getNumericCellValue();
                                 data.setSpending(spending);
-                                cust.setSpending(spending);
-                                //System.out.println("case 13");
                                 break;
                             default:
-
                         }
                     }
                     list.add(data);
-                    //System.out.println("");
                 }
-                
-                if(clist.isEmpty()) {
-                    clist.add(cust);
-                } else {
-                    boolean isCreated = false;
-                    
-                    for (Customer c : clist) {
-                        int stored = c.getCustomerId();
-                        int cur = cust.getCustomerId();
-                        
-                        if (stored == cur) {
-                            isCreated = true;
-                            break;
-                        } else {
-                            isCreated = false;
-                        }
-                    }
-                    if (isCreated == false) {
-                        clist.add(cust);         
-                    }
-                }
-                //3, 4 south
-                //1, 2, 6, 7, 8, 9, 10, 11, 12 CBD
-                //5, 21, 22, 23, 24 west
-                //13, 14, 15, 16, 17, 18 east
-                //19, 20, 25, 26, 27, 28 north
-                switch (out.getOutletDistrict()) {
-                    case 3:
-                    case 4:
-                        out.setRegion("South");
-                        break;
-                    case 1:
-                    case 2:
-                    case 6:
-                    case 7:
-                    case 8:
-                    case 9:
-                    case 10:
-                    case 11:
-                    case 12:
-                        out.setRegion("CBD");
-                        break;
-                    case 5:
-                    case 21:
-                    case 22:
-                    case 23:
-                    case 24:
-                        out.setRegion("West");
-                        break;
-                    case 13:
-                    case 14:
-                    case 15:
-                    case 16:
-                    case 17:
-                    case 18:
-                        out.setRegion("East");
-                        break;
-                    case 19:
-                    case 20:
-                    case 25:
-                    case 26:
-                    case 27:
-                    case 28:
-                        out.setRegion("North");
-                        break;
-                    default:
-                        break;
-                }
-                
-                if (olist.isEmpty()) {
-                    olist.add(out);
-                } else {
-                    boolean isCreated = false;
-                    for (Outlet o : olist) {
-                        String storedOutlet = o.getOutlet();
-                        int storedDistrict = o.getOutletDistrict();
-//                        System.out.println(storedOutlet + ", " + storedDistrict);
-                        String curOutlet = out.getOutlet();
-                        int curDistrict = out.getOutletDistrict();
-//                        System.out.println("Current " + curOutlet + ", " + curDistrict);
-                        if(storedOutlet.equals(curOutlet) && storedDistrict == curDistrict) {
-                            isCreated = true;
-                            break;
-                        }
-                    }
-                    if (!isCreated) {
-                        olist.add(out);
-                    }
-                }
-                
-//                System.out.println(olist.size());
-                
+
                 noOfLines++;
                 if (noOfLines == 32740 ) {
                     
                     //establish connection, sql, execute sql
                     try {
                         String sql = "Insert into data VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-                        String users = "Insert into users VALUES(?,?,?,?)";
-                        String outs = "Insert into outlets VALUES(?,?,?)";
                         PreparedStatement pstmt = null;
-                        ResultSet rs = null;
                         //upload by batches
                         conn.setAutoCommit(false);
                         //total 556581
                         
                         pstmt = conn.prepareStatement(sql);
-                        insertUser = conn.prepareStatement(users);
-                        insertOutlets = conn.prepareStatement(outs);
-                        
                         //loop through user list
                         for (Data d : list) {
                             pstmt.setInt(1, d.getCustomerId());
@@ -302,28 +156,10 @@ public class Bootstrap {
                             pstmt.setDouble(14, d.getSpending());
                             pstmt.addBatch();
                         }
-                        
-                        for (Customer d : clist) {
-                            insertUser.setInt(1, d.getCustomerId());
-                            insertUser.setInt(2, d.getAge());
-                            insertUser.setString(3, d.getGender());
-                            insertUser.setDouble(4, d.getSpending());
-                            insertUser.addBatch();
-                        }
-                        //System.out.println(pstmt);
-                        insertUser.executeBatch();
-                       
-                        for (Outlet d : olist) {
-                            insertOutlets.setString(1, d.getOutlet());
-                            insertOutlets.setInt(2, d.getOutletDistrict());
-                            insertOutlets.setString(3, d.getRegion());
-                            insertOutlets.addBatch();
-                        }
-                        //System.out.println(pstmt);
-                        insertOutlets.executeBatch();
-                        
+
                         //System.out.println(pstmt);
                         pstmt.executeBatch();
+                        pstmt.close();
                         conn.commit();
                         System.out.println("current counter = " + counter);
                     } catch (SQLException k) {
@@ -331,16 +167,13 @@ public class Bootstrap {
                     }
                     
                     noOfLines = 1;
-                    list.clear();
-                    clist.clear();
                     //System.out.println("batch submitted");
                 } else if (counter > 556560 && counter <= 556580){
                     try {
                         String sql = "Insert into data VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
                         PreparedStatement pstmt = null;
-                        ResultSet rs = null;
                         //upload by batches
-                        //conn.setAutoCommit(false);
+                        conn.setAutoCommit(false);
                         //total 556581
                         
                         pstmt = conn.prepareStatement(sql);
@@ -371,11 +204,16 @@ public class Bootstrap {
                     }
                 }
             }
-            
-            //close connection
-//            conn.close();
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
         return true;
